@@ -107,6 +107,9 @@ def batch_convert(img_dir, json_dir, out_dir, class_names=None):
     os.makedirs(out_dir, exist_ok=True)
     img_out_dir = os.path.join(out_dir, "images")  # 新增
     os.makedirs(img_out_dir, exist_ok=True)       # 新增
+
+    label_out_dir = os.path.join(out_dir, "labels")  # 新增
+    os.makedirs(label_out_dir, exist_ok=True)       # 新增
     
     for name in os.listdir(json_dir):
         if not name.lower().endswith(".json"):
@@ -120,7 +123,7 @@ def batch_convert(img_dir, json_dir, out_dir, class_names=None):
             print("找不到对应图片，跳过:", base)
             continue
         
-        save_path = os.path.join(out_dir, base + ".txt")
+        save_path = os.path.join(label_out_dir, base + ".txt")
         ok = json_to_yolo(json_path, img_path, save_path, class_names)
         
         if ok:
@@ -134,8 +137,8 @@ def batch_convert(img_dir, json_dir, out_dir, class_names=None):
 if __name__ == "__main__":
     # 示例调用，修改为你的路径和类别名称（类别名可以包含中文）
     batch_convert(
-        img_dir=r"E:\qcy\new-data\gdf_gzf",  # 图片文件夹路径
-        json_dir=r"E:\qcy\new-data\gdf_gzf",  # JSON标签文件夹路径
-        out_dir=r"E:\qcy\new-data\new-data-label",  # 输出YOLO格式标签的文件夹路径
+        img_dir=r"E:\qcy\new-data\new-data-20251125\20251125-split-data\Segmentation",  # 图片文件夹路径
+        json_dir=r"E:\qcy\new-data\new-data-20251125\20251125-split-data\Segmentation",  # JSON标签文件夹路径
+        out_dir=r"E:\qcy\new-data\new-data-20251125\20251125-yolo-seg-data",  # 输出YOLO格式标签的文件夹路径
         class_names=["gdf", "gzf"]  # 类别名称列表，可以包含中文
     )
