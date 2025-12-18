@@ -51,18 +51,18 @@ def json_to_yolo(json_path, img_path, save_path, class_names=None, format_type='
     """
     img = imread_unicode(img_path)
     if img is None:
-        print(f"[错误] 无法读取图片: {img_path}")
+        print(f"无法读取图片: {img_path}")
         return False
 
     h, w = img.shape[:2]
-    print(f"[信息] 图片尺寸: {w}x{h}, 路径: {img_path}")
+    print(f"图片尺寸: {w}x{h}, 路径: {img_path}")
     
     # 读取JSON文件
     try:
         with open(json_path, 'r', encoding='utf-8') as f:
             json_data = json.load(f)
     except Exception as e:
-        print(f"[错误] 读取JSON文件失败 {json_path}: {e}")
+        print(f"读取JSON文件失败 {json_path}: {e}")
         return False
     
     # 创建类别名到ID的映射
@@ -89,13 +89,13 @@ def json_to_yolo(json_path, img_path, save_path, class_names=None, format_type='
             if label in class_to_id:
                 class_id = class_to_id[label]
             else:
-                print(f"    [警告] 未知类别: {label}，跳过")
+                print(f"未知类别: {label}，跳过")
                 continue
         else:
             try:
                 class_id = int(label)
             except ValueError:
-                print(f"    [警告] 无法解析类别ID: {label}，跳过")
+                print(f"无法解析类别ID: {label}，跳过")
                 continue
         
         # 根据format_type和shape_type决定输出格式
@@ -112,7 +112,7 @@ def json_to_yolo(json_path, img_path, save_path, class_names=None, format_type='
             elif shape_type == 'polygon':
                 output_as_polygon = True
             else:
-                print(f"    [警告] 未知的形状类型: {shape_type}，跳过")
+                print(f"未知的形状类型: {shape_type}，跳过")
                 continue
         
         # ===== 处理矩形框（目标检测格式）=====
@@ -130,7 +130,7 @@ def json_to_yolo(json_path, img_path, save_path, class_names=None, format_type='
                 xmin, xmax = min(xs), max(xs)
                 ymin, ymax = min(ys), max(ys)
             else:
-                print(f"    [警告] 无法转换为bbox格式，点数不足，跳过")
+                print(f"无法转换为bbox格式，点数不足，跳过")
                 continue
             
             # 计算YOLO bbox格式：x_center, y_center, width, height（归一化）
@@ -146,7 +146,7 @@ def json_to_yolo(json_path, img_path, save_path, class_names=None, format_type='
             bbox_height = max(0, min(1, bbox_height))
             
             yolo_line = f"{class_id} {x_center:.6f} {y_center:.6f} {bbox_width:.6f} {bbox_height:.6f}"
-            print(f"    [成功] 转换为YOLO bbox格式: {yolo_line}")
+            print(f"转换为YOLO bbox格式: {yolo_line}")
             yolo_lines.append(yolo_line)
         
         # ===== 处理多边形（实例分割格式）=====
@@ -165,7 +165,7 @@ def json_to_yolo(json_path, img_path, save_path, class_names=None, format_type='
                 # 直接使用多边形点
                 polygon_points = points
             else:
-                print(f"    [警告] 无法转换为polygon格式，点数不足，跳过")
+                print(f"无法转换为polygon格式，点数不足，跳过")
                 continue
             
             # 归一化多边形坐标
@@ -177,20 +177,20 @@ def json_to_yolo(json_path, img_path, save_path, class_names=None, format_type='
                 normalized_coords.extend([norm_x, norm_y])
             
             yolo_line = f"{class_id} " + " ".join([f"{coord:.6f}" for coord in normalized_coords])
-            print(f"    [成功] 转换为YOLO polygon格式: class={class_id}, {len(polygon_points)}个点")
+            print(f"转换为YOLO polygon格式: class={class_id}, {len(polygon_points)}个点")
             yolo_lines.append(yolo_line)
     
     # 写入YOLO格式文件
     if not yolo_lines:
-        print(f"[警告] 没有有效的标注对象，生成空文件")
+        print(f"警告: 没有有效的标注对象，生成空文件")
     
     try:
         with open(save_path, 'w', encoding='utf-8') as f:
             f.write('\n'.join(yolo_lines))
-        print(f"[成功] 已写入 {len(yolo_lines)} 个标注到: {save_path}\n")
+        print(f"已写入 {len(yolo_lines)} 个标注到: {save_path}\n")
         return True
     except Exception as e:
-        print(f"[错误] 写入YOLO文件失败 {save_path}: {e}")
+        print(f"错误: 写入YOLO文件失败 {save_path}: {e}")  
         return False
 
 def batch_convert(img_dir, json_dir, out_dir, class_names=None, format_type='auto'):
@@ -228,7 +228,7 @@ def batch_convert(img_dir, json_dir, out_dir, class_names=None, format_type='aut
         
         img_path = find_image_for_json(img_dir, base)
         if img_path is None:
-            print(f"[错误] 找不到对应图片，跳过: {base}\n")
+            print(f"错误: 找不到对应图片，跳过: {base}\n")
             fail_count += 1
             continue
         
