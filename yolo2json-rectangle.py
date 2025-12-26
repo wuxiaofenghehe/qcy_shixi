@@ -62,7 +62,7 @@ def yolo_bbox_to_labelme(img_path: str, txt_path: str, save_path: str, class_nam
 
         # 严格要求：必须是 类别ID + 4个BBox坐标 (总共 5 个元素)
         if len(data) != 5:
-            print(f"⚠️ 跳过非标准 BBox 格式行 (元素: {len(data)}) : {txt_path} -> {line}")
+            print(f"跳过非标准 BBox 格式行 (元素: {len(data)}) : {txt_path} -> {line}")
             continue
 
         try:
@@ -70,7 +70,7 @@ def yolo_bbox_to_labelme(img_path: str, txt_path: str, save_path: str, class_nam
             # 提取 4 个归一化坐标
             xc, yc, bw, bh = list(map(float, data[1:]))
         except:
-            print(f"❌ 坐标解析失败，跳过: {txt_path} -> {line}")
+            print(f"坐标解析失败，跳过: {txt_path} -> {line}")
             continue
 
         # --- BBox 坐标转换逻辑 ---
@@ -124,7 +124,7 @@ def batch_convert_bbox(img_dir: str, label_dir: str, out_dir: str, class_names: 
     """批量转换 YOLO BBox 标签到 LabelMe JSON。"""
     os.makedirs(out_dir, exist_ok=True)
 
-    print(f"--- 🚀 开始批量转换 YOLO BBox -> LabelMe JSON ---")
+    print(f"--- 开始批量转换 YOLO BBox -> LabelMe JSON ---")
 
     for name in os.listdir(label_dir):
         if not name.lower().endswith(".txt"):
@@ -135,7 +135,7 @@ def batch_convert_bbox(img_dir: str, label_dir: str, out_dir: str, class_names: 
 
         img_path = find_image_for_label(img_dir, base)
         if img_path is None:
-            print(f"🔴 找不到对应图片，跳过: {base}")
+            print(f"找不到对应图片，跳过: {base}")
             continue
 
         save_path = os.path.join(out_dir, base + ".json")
@@ -143,21 +143,21 @@ def batch_convert_bbox(img_dir: str, label_dir: str, out_dir: str, class_names: 
         ok = yolo_bbox_to_labelme(img_path, txt_path, save_path, class_names)
 
         if ok:
-            print(f"✅ Converted BBox: {os.path.basename(save_path)}")
+            print(f"Converted BBox: {os.path.basename(save_path)}")
         else:
-            print(f"❌ 转换失败: {name}")
+            print(f"转换失败: {name}")
 
     print("--- 转换完成 ---")
 
 
 if __name__ == "__main__":
-    # 📢 示例调用：请修改为你的实际路径和类别名称
+    #示例调用：请修改为你的实际路径和类别名称
 
     MY_CLASS_NAMES = ["bl", "yl", "yz"]
 
     batch_convert_bbox(
-        img_dir=r"E:\qcy\样本数据集\检测数据集\1999_三次合并\images",  # 你的图片目录
-        label_dir=r"E:\qcy\样本数据集\检测数据集\1999_三次合并\labels",  # 你的 YOLO BBox TXT 标签目录
-        out_dir=r"E:\qcy\样本数据集\检测数据集\1999_三次合并\json-data",  # 转换后的 JSON 输出目录
+        img_dir=r"E:\qcy\data\old-det-dataset\images",  # 你的图片目录
+        label_dir=r"E:\qcy\data\old-det-dataset\labels",  # 你的 YOLO BBox TXT 标签目录
+        out_dir=r"E:\qcy\data\old-det-dataset\json-data",  # 转换后的 JSON 输出目录
         class_names=MY_CLASS_NAMES
     )
