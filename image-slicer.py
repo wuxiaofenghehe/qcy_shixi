@@ -9,6 +9,7 @@ import argparse
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional
 from PIL import Image
+from tqdm import tqdm
 
 
 class ImageSlicer:
@@ -122,40 +123,51 @@ class ImageSlicer:
         Returns:
             保存的文件路径列表
         """
+        # output_path = Path(output_dir)
+        # output_path.mkdir(parents=True, exist_ok=True)
+        
+        # saved_paths = []
+        
+        # for slice_info in slice_infos:
+        #     try:
+        #         # 生成切片图像
+        #         if self.memory_opt and self.image_path:
+        #             # 按需加载图像片段
+        #             with Image.open(self.image_path) as img:
+        #                 slice_img = img.crop((
+        #                     0,
+        #                     slice_info['start_y'],
+        #                     slice_info['width'],
+        #                     slice_info['end_y']
+        #                 ))
+        #         else:
+        #             # 从已加载的图像中裁剪
+        #             slice_img = self.current_image.crop((
+        #                 0,
+        #                 slice_info['start_y'],
+        #                 slice_info['width'],
+        #                 slice_info['end_y']
+        #             ))
+                
+        #         # 保存切片
+        #         output_file = output_path / f"{base_name}_slice_{slice_info['index']:03d}.png"
+        #         slice_img.save(output_file, format='PNG')
+        #         saved_paths.append(str(output_file))
+                
+        #     except Exception as e:
+        #         print(f"  警告: 保存切片 {slice_info['index']} 失败: {e}")
+        
+        # return saved_paths
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        
         saved_paths = []
-        
-        for slice_info in slice_infos:
-            try:
-                # 生成切片图像
-                if self.memory_opt and self.image_path:
-                    # 按需加载图像片段
-                    with Image.open(self.image_path) as img:
-                        slice_img = img.crop((
-                            0,
-                            slice_info['start_y'],
-                            slice_info['width'],
-                            slice_info['end_y']
-                        ))
-                else:
-                    # 从已加载的图像中裁剪
-                    slice_img = self.current_image.crop((
-                        0,
-                        slice_info['start_y'],
-                        slice_info['width'],
-                        slice_info['end_y']
-                    ))
-                
-                # 保存切片
+
+        with Image.open(self.image_path) as img:
+            for slice_info in tqdm(slice_infos, desc=f"{base_name} 切片", unit="张"):
+                slice_img = img.crop((0, slice_info['start_y'], slice_info['width'], slice_info['end_y']))
                 output_file = output_path / f"{base_name}_slice_{slice_info['index']:03d}.png"
                 slice_img.save(output_file, format='PNG')
                 saved_paths.append(str(output_file))
-                
-            except Exception as e:
-                print(f"  警告: 保存切片 {slice_info['index']} 失败: {e}")
-        
         return saved_paths
     
     def get_slice_metadata(self) -> Dict[str, Any]:
@@ -430,11 +442,10 @@ def main():
     # 如果没有命令行参数，使用默认配置
     if len(sys.argv) == 1:
         # 默认配置
-        input_path = r"E:\qcy\new-data\新样本20251125"
-        output_dir = r"E:\qcy\new-data\新样本20251125\sliced_images"
+        input_path = r"D:\wellimg\wellimg20260401"
+        output_dir = r"D:\wellimg\wellimg20260401\202260401sliced-data"
         custom_config = {}
         save_metadata = True
-        
         print("使用默认配置运行...")
     else:
         # 解析命令行参数
@@ -485,7 +496,7 @@ def main():
     
     # 执行批量处理
     processor = BatchImageSlicer(custom_config)
-    processor.process_batch(input_path, output_dir, save_metadata=save_metadata)
+    processor.process_batch(input_path, output_dir)
 
 
 if __name__ == "__main__":
