@@ -123,41 +123,6 @@ class ImageSlicer:
         Returns:
             保存的文件路径列表
         """
-        # output_path = Path(output_dir)
-        # output_path.mkdir(parents=True, exist_ok=True)
-        
-        # saved_paths = []
-        
-        # for slice_info in slice_infos:
-        #     try:
-        #         # 生成切片图像
-        #         if self.memory_opt and self.image_path:
-        #             # 按需加载图像片段
-        #             with Image.open(self.image_path) as img:
-        #                 slice_img = img.crop((
-        #                     0,
-        #                     slice_info['start_y'],
-        #                     slice_info['width'],
-        #                     slice_info['end_y']
-        #                 ))
-        #         else:
-        #             # 从已加载的图像中裁剪
-        #             slice_img = self.current_image.crop((
-        #                 0,
-        #                 slice_info['start_y'],
-        #                 slice_info['width'],
-        #                 slice_info['end_y']
-        #             ))
-                
-        #         # 保存切片
-        #         output_file = output_path / f"{base_name}_slice_{slice_info['index']:03d}.png"
-        #         slice_img.save(output_file, format='PNG')
-        #         saved_paths.append(str(output_file))
-                
-        #     except Exception as e:
-        #         print(f"  警告: 保存切片 {slice_info['index']} 失败: {e}")
-        
-        # return saved_paths
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         saved_paths = []
