@@ -3,111 +3,176 @@ import json
 import shutil
 
 # --- 配置部分 ---
-# 1. 更改为你的数据所在的根文件夹路径
-INPUT_DIR = r"E:\qcy\new-data\new_data_20251110_slice"
-# 2. 更改为你想保存分类结果的输出文件夹路径
-OUTPUT_DIR = r"E:\qcy\new-data\20251110-detect-json"
+# 1. 待分类数据所在的目录（包含图片和JSON标签文件）
+INPUT_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\WZ10-5-4_yt\classified_output\Background"
+# 2. 分类结果的输出目录（子文件夹: Object_Detection / Segmentation / Background）
+OUTPUT_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\WZ10-5-4_yt\classified_output"
+# 3. 如果目标文件已存在，是否覆盖（True=覆盖, False=跳过）
+OVERWRITE = False
 
 # 目标检测 (Object Detection) 标签
-OD_LABELS = {"bl", "yl", "YZ"}
+OD_LABELS = {"bl", "yl", "yz"}
 # 分割 (Segmentation) 标签
 SEG_LABELS = {"gdf", "gzf"}
 
 
-# --- 分类函数 ---
-def classify_file(input_dir, output_dir):
+def safe_move(src, dst, overwrite=False):
     """
-    遍历输入目录，并根据JSON标签将图片及其标签文件分类到不同的子文件夹。
+    安全移动文件：
+    - 如果 src 和 dst 是同一个文件，跳过
+    - 如果 dst 已存在且 overwrite=False，跳过
+    - 如果 dst 已存在且 overwrite=True，覆盖
+    返回: (action, message)
+        action: "moved", "skipped_same", "skipped_exists", "overwritten"
     """
+    src_abs = os.path.normcase(os.path.abspath(src))
+    dst_abs = os.path.normcase(os.path.abspath(dst))
 
-    # 确保输出目录存在
+    if src_abs == dst_abs:
+        return ("skipped_same", "已在目标文件夹中，跳过")
+
+    if os.path.exists(dst_abs):
+        if overwrite:
+            os.remove(dst_abs)
+            shutil.move(src, dst)
+            return ("overwritten", "目标已存在，已覆盖")
+        else:
+            return ("skipped_exists", "目标已存在，跳过")
+
+    shutil.move(src, dst)
+    return ("moved", "")
+
+
+def classify_file(input_dir, output_dir, overwrite=False):
+    """
+    遍历输入目录，根据JSON标签将图片及标签文件移动到对应类别子文件夹。
+    """
+    input_dir = os.path.normpath(input_dir)
+    output_dir = os.path.normpath(output_dir)
+
     os.makedirs(output_dir, exist_ok=True)
 
-    # 定义子文件夹路径
+    # 子文件夹
     od_dir = os.path.join(output_dir, "Object_Detection")
     seg_dir = os.path.join(output_dir, "Segmentation")
     background_dir = os.path.join(output_dir, "Background")
 
-    # 创建子文件夹
-    os.makedirs(od_dir, exist_ok=True)
-    os.makedirs(seg_dir, exist_ok=True)
-    os.makedirs(background_dir, exist_ok=True)
+    for d in [od_dir, seg_dir, background_dir]:
+        os.makedirs(d, exist_ok=True)
 
-    # 存储已处理的图片文件名（避免重复处理）
-    processed_images = set()
+    stats = {"od": 0, "seg": 0, "bg": 0, "skipped": 0, "errors": 0}
+    moved_images = set()
 
-    print(f"--- 开始分类 ---")
-    print(f"源目录: {input_dir}")
-    print(f"目标目录: {output_dir}\n")
+    print(f"{'=' * 50}")
+    print(f"源目录:   {input_dir}")
+    print(f"目标目录: {output_dir}")
+    print(f"覆盖模式: {'是' if overwrite else '否（已存在则跳过）'}")
+    print(f"{'=' * 50}\n")
 
-    # 1. 首先处理带有JSON标签的文件
-    for filename in os.listdir(input_dir):
-        if filename.endswith(".json"):
-            json_path = os.path.join(input_dir, filename)
+    # 检测输入目录是否在输出目录内部
+    input_abs = os.path.normcase(os.path.abspath(input_dir))
+    output_abs = os.path.normcase(os.path.abspath(output_dir))
+    if input_abs.startswith(output_abs + os.sep) or input_abs == output_abs:
+        print("⚠ 注意: 输入目录位于输出目录内部。")
+        print("  文件将被移动到对应类别文件夹，已在正确位置的文件夹不会被移动。\n")
 
-            # 找到对应的图片文件名（假设图片名和json名相同，只是扩展名不同）
-            # 兼容常见的图片格式，这里假设是.jpg, .png等
-            base_name = filename[:-5]  # 移除 .json
+    all_files = os.listdir(input_dir)
+    json_files = [f for f in all_files if f.endswith(".json")]
+    total = len(json_files)
 
-            # 尝试匹配可能的图片文件
-            image_file = None
-            for ext in [".jpg", ".jpeg", ".png", ".bmp"]:  # 常见的图片扩展名
-                potential_image = base_name + ext
-                if os.path.exists(os.path.join(input_dir, potential_image)):
-                    image_file = potential_image
-                    break
+    # --- 1. 处理带有JSON标签的文件 ---
+    for idx, filename in enumerate(json_files, 1):
+        json_path = os.path.join(input_dir, filename)
+        base_name = filename[:-5]  # 去掉 .json
 
-            if image_file:
-                image_path = os.path.join(input_dir, image_file)
+        # 匹配图片文件
+        image_file = None
+        for ext in [".jpg", ".jpeg", ".png", ".bmp"]:
+            potential = base_name + ext
+            if os.path.exists(os.path.join(input_dir, potential)):
+                image_file = potential
+                break
 
-                try:
-                    with open(json_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
+        if not image_file:
+            print(f"[{idx}/{total}] {filename} -> 未找到对应图片，跳过")
+            stats["skipped"] += 1
+            continue
 
-                        # **关键部分：解析JSON数据以找到所有标签**
-                        # 假设标签列表在 'shapes' 键下，且每个标签对象有 'label' 键
-                        labels = {shape.get('label') for shape in data.get('shapes', []) if shape.get('label')}
+        image_path = os.path.join(input_dir, image_file)
 
-                        target_dir = None
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
 
-                        # 检查是否有目标检测标签
-                        if labels.intersection(OD_LABELS):
-                            target_dir = od_dir
-                        # 检查是否有分割标签
-                        elif labels.intersection(SEG_LABELS):
-                            target_dir = seg_dir
+            labels = {shape.get('label') for shape in data.get('shapes', []) if shape.get('label')}
 
-                        # 如果是带有标签的图像
-                        if target_dir:
-                            print(f"{image_file} (Label: {labels}) -> {os.path.basename(target_dir)}")
+            if labels.intersection(OD_LABELS):
+                target_dir, category = od_dir, "OD"
+            elif labels.intersection(SEG_LABELS):
+                target_dir, category = seg_dir, "SEG"
+            else:
+                # 有JSON但没有有效标签 → 归为背景
+                target_dir, category = background_dir, "BG"
 
-                            # 移动/复制图片和JSON文件
-                            shutil.copy2(image_path, os.path.join(target_dir, image_file))
-                            shutil.copy2(json_path, os.path.join(target_dir, filename))
-                            processed_images.add(image_file)
+            # 移动图片
+            dst_image = os.path.join(target_dir, image_file)
+            action, msg = safe_move(image_path, dst_image, overwrite)
 
-                except Exception as e:
-                    print(f"处理文件 {filename} 时出错: {e}")
+            # 移动JSON
+            dst_json = os.path.join(target_dir, filename)
+            _, msg_j = safe_move(json_path, dst_json, overwrite)
+            if msg_j and not msg:
+                msg = msg_j
 
-    # 2. 处理未被标记的图片（背景图像）
-    print("\n--- 处理背景图像 ---")
-    for filename in os.listdir(input_dir):
-        # 检查是否是图片文件，并且没有被上面的步骤处理过
-        if filename.lower().endswith((".jpg", ".jpeg", ".png", ".bmp")) and filename not in processed_images:
-            image_path = os.path.join(input_dir, filename)
+            if action in ("moved", "overwritten"):
+                if category == "OD":
+                    stats["od"] += 1
+                elif category == "SEG":
+                    stats["seg"] += 1
+                else:
+                    stats["bg"] += 1
+                moved_images.add(image_file)
 
-            # 检查同名的JSON文件是否存在
+            label_str = f"(Label: {labels})" if labels else "(无标签)"
+            status = f"[{idx}/{total}] {image_file} {label_str} -> {os.path.basename(target_dir)}"
+            if msg:
+                status += f" | {msg}"
+            print(status)
+
+        except Exception as e:
+            print(f"[{idx}/{total}] 处理 {filename} 时出错: {e}")
+            stats["errors"] += 1
+
+    # --- 2. 处理无JSON文件的图片（纯背景） ---
+    print(f"\n--- 处理无标签背景图像 ---")
+    for filename in sorted(all_files):
+        if filename.lower().endswith((".jpg", ".jpeg", ".png", ".bmp")) and filename not in moved_images:
             json_name = os.path.splitext(filename)[0] + ".json"
-            json_path = os.path.join(input_dir, json_name)
+            if not os.path.exists(os.path.join(input_dir, json_name)):
+                image_path = os.path.join(input_dir, filename)
+                dst_image = os.path.join(background_dir, filename)
+                action, msg = safe_move(image_path, dst_image, overwrite)
 
-            # 如果没有对应的JSON文件，或者JSON文件不存在（已处理的图片已被排除）
-            if not os.path.exists(json_path):
-                print(f"{filename} -> Background")
-                shutil.copy2(image_path, os.path.join(background_dir, filename))
+                if action in ("moved", "overwritten"):
+                    stats["bg"] += 1
 
-            # 额外检查：如果JSON存在但没有有效标签，理论上也应归为背景，
-            # 但为了简化，我们仅将“无JSON文件”的图片视为背景。
+                status = f"  {filename} -> Background"
+                if msg:
+                    status += f" | {msg}"
+                print(status)
 
-    print("\n--- 分类完成 ---")
+    # --- 汇总 ---
+    print(f"\n{'=' * 50}")
+    print(f"分类完成！")
+    print(f"  目标检测 (Object_Detection): {stats['od']} 张")
+    print(f"  分割 (Segmentation):        {stats['seg']} 张")
+    print(f"  背景 (Background):          {stats['bg']} 张")
+    if stats["skipped"]:
+        print(f"  跳过:                       {stats['skipped']} 张")
+    if stats["errors"]:
+        print(f"  错误:                       {stats['errors']} 个")
+    print(f"{'=' * 50}")
+
+
 if __name__ == "__main__":
-        classify_file(INPUT_DIR, OUTPUT_DIR)
+    classify_file(INPUT_DIR, OUTPUT_DIR, OVERWRITE)
