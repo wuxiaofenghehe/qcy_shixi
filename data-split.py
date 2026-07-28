@@ -98,9 +98,9 @@ def split_dataset(images_dir, labels_dir, output_dir, test_size=0.1, val_size=0.
 
 if __name__ == '__main__':
     # 请确保以下路径存在且正确
-    images_dir = r"D:\qcy\yolo11aug\new-data-yolo-20251110\images"
-    labels_dir = r"D:\qcy\yolo11aug\new-data-yolo-20251110\labels"
-    output_dir = r"D:\qcy\yolo11aug\new-data-yolo-20251110\split-data"
+    images_dir = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-det-data-yolo\images-aug"
+    labels_dir = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-det-data-yolo\labels-aug"
+    output_dir = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-det-data-yolo\split-data"
 
     # 默认划分比例：测试集 10%，验证集 10%，训练集 80%
     split_dataset(images_dir, labels_dir, output_dir, test_size=0.1, val_size=0.1)

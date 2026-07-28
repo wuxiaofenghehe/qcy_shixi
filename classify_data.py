@@ -4,9 +4,9 @@ import shutil
 
 # --- 配置部分 ---
 # 1. 待分类数据所在的目录（包含图片和JSON标签文件）
-INPUT_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\WZ10-5-4_yt\classified_output\Background"
+INPUT_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\WZ10-5S-3_yt"
 # 2. 分类结果的输出目录（子文件夹: Object_Detection / Segmentation / Background）
-OUTPUT_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\WZ10-5-4_yt\classified_output"
+OUTPUT_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\WZ10-5S-3_yt\classified_output"
 # 3. 如果目标文件已存在，是否覆盖（True=覆盖, False=跳过）
 OVERWRITE = False
 

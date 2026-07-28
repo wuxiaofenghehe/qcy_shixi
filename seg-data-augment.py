@@ -476,10 +476,10 @@ def main():
     """主函数 - 使用示例"""
     
     # ========== 配置参数 ==========
-    SOURCE_IMAGES_DIR = r"E:\qcy\new-data\new-data-yolo-20251110\images"  # 原始图片目录
-    SOURCE_LABELS_DIR = r"E:\qcy\new-data\new-data-yolo-20251110\labels"  # 原始标签目录
-    OUTPUT_IMAGES_DIR = r"E:\qcy\train-augment\images"  # 输出图片目录
-    OUTPUT_LABELS_DIR = r"E:\qcy\train-augment\labels"  # 输出标签目录
+    SOURCE_IMAGES_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-seg-data-yolo\images"  # 原始图片目录
+    SOURCE_LABELS_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-seg-data-yolo\labels"  # 原始标签目录
+    OUTPUT_IMAGES_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-seg-data-yolo\images-aug"  # 输出图片目录
+    OUTPUT_LABELS_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-seg-data-yolo\labels-aug"  # 输出标签目录
     
     # ========== 执行数据增强 ==========
     # 每张图片会生成2个版本：原图 + 随机选择的一种增强（马赛克或颜色填充，各50%概率）

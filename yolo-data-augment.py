@@ -314,10 +314,10 @@ def main():
     # 2. 分割任务示例
     # task = 'segmentation'
 
-    SOURCE_IMAGES_DIR = r"E:\qcy\new-data\new-data-20251125\20251125-split-data\classify-data\20251125-yolo-seg-data\images"
-    SOURCE_LABELS_DIR = r"E:\qcy\new-data\new-data-20251125\20251125-split-data\classify-data\20251125-yolo-seg-data\labels"
-    OUTPUT_IMAGES_DIR = r"E:\qcy\new-data\new-data-20251125\20251125-split-data\classify-data\20251125-yolo-seg-data\images\train-augment"
-    OUTPUT_LABELS_DIR = r"E:\qcy\new-data\new-data-20251125\20251125-split-data\classify-data\20251125-yolo-seg-data\labels\train-augment"
+    SOURCE_IMAGES_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-det-data-yolo\images"
+    SOURCE_LABELS_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-det-data-yolo\labels"
+    OUTPUT_IMAGES_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-det-data-yolo\images-aug"
+    OUTPUT_LABELS_DIR = r"D:\wellimg\wellimg20260401\202260401sliced-data\total-det-data-yolo\labels-aug"
 
     augmentor = YOLOAugmentation(
         source_images_dir=SOURCE_IMAGES_DIR,
